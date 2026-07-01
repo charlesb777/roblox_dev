@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roblox Dev Rig — Cursor + Git + Rojo + Studio</title>
+<style>
+  :root{
+    --bg:#070b22; --panel:#111a44; --panel2:#0e1640; --ink:#05081a;
+    --cyan:#00e5ff; --pink:#ff3db0; --purple:#8a5bff; --green:#23f0a0;
+    --gold:#ffd23f; --red:#ff4d4d; --text:#eaf0ff; --muted:#9bb0d8; --line:#243066;
+    --glow-cyan:0 0 14px rgba(0,229,255,.55);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif; color:var(--text); background:var(--bg); overflow-x:hidden;}
+  .bgwrap{position:fixed; inset:0; z-index:-2; background:
+     radial-gradient(900px 600px at 80% -10%, rgba(138,91,255,.25), transparent 60%),
+     radial-gradient(800px 500px at 0% 20%, rgba(0,229,255,.18), transparent 60%),
+     linear-gradient(180deg,#070b22,#0a1030 60%,#070b22);}
+  .grid{position:fixed; inset:0; z-index:-1; opacity:.28;
+     background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+     background-size:46px 46px; mask-image:radial-gradient(circle at 50% 22%,#000 30%,transparent 80%); animation:drift 24s linear infinite;}
+  @keyframes drift{from{background-position:0 0,0 0}to{background-position:46px 92px,92px 46px}}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 22px}
+  h1,h2,h3{margin:0; line-height:1.08; font-weight:900; letter-spacing:.4px}
+  a{color:var(--cyan); text-decoration:none}
+  .floaty{position:fixed; z-index:-1; pointer-events:none; opacity:.8; filter:drop-shadow(0 0 10px rgba(255,210,63,.6))}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-26px) rotate(12deg)}}
+
+  nav{position:sticky; top:0; z-index:50; backdrop-filter:blur(10px); background:rgba(7,11,34,.72); border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:60px}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:900; font-size:17px}
+  .cube{width:24px;height:24px;border-radius:7px; background:linear-gradient(135deg,var(--cyan),var(--pink)); box-shadow:var(--glow-cyan); animation:spin 6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .navlinks{display:flex; gap:16px; font-size:13px; color:var(--muted)}
+  .navlinks a{color:var(--muted)} .navlinks a:hover{color:var(--cyan)}
+  @media(max-width:900px){.navlinks{display:none}}
+
+  header{padding:78px 0 46px; text-align:center; position:relative}
+  .kicker{display:inline-block; padding:7px 16px; border-radius:999px; font-size:12.5px; letter-spacing:2px; text-transform:uppercase; color:var(--cyan); border:1px solid rgba(0,229,255,.4); background:rgba(0,229,255,.07); margin-bottom:20px}
+  .title{font-size:clamp(40px,8vw,84px); text-transform:uppercase}
+  .title .a{background:linear-gradient(90deg,var(--cyan),#7ef9ff); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:0 0 40px rgba(0,229,255,.35)}
+  .title .b{background:linear-gradient(90deg,var(--pink),var(--purple)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{max-width:670px; margin:22px auto 0; color:var(--muted); font-size:clamp(15px,2.3vw,19px); line-height:1.6}
+  .cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:30px}
+  .btn{padding:14px 24px; border-radius:13px; font-weight:800; font-size:14.5px; cursor:pointer; border:none; transition:transform .15s, box-shadow .25s; display:inline-flex; gap:8px; align-items:center}
+  .btn-p{background:linear-gradient(135deg,var(--cyan),var(--pink)); color:#06112b; box-shadow:0 6px 26px rgba(255,61,176,.4)}
+  .btn-g{background:transparent; color:var(--text); border:1px solid var(--line)}
+  .btn:hover{transform:translateY(-3px)} .btn-p:hover{box-shadow:0 10px 34px rgba(0,229,255,.55)}
+  .chips{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:28px}
+  .chip{padding:9px 15px; border-radius:11px; font-size:13px; font-weight:700; color:var(--text); background:var(--panel); border:1px solid var(--line); display:flex; gap:7px; align-items:center}
+  .dot{width:9px;height:9px;border-radius:50%}
+
+  section{padding:56px 0; position:relative}
+  .eyebrow{color:var(--pink); font-weight:800; letter-spacing:3px; text-transform:uppercase; font-size:12.5px}
+  .h2{font-size:clamp(26px,4.8vw,44px); margin:10px 0 12px; text-transform:uppercase}
+  .lead{color:var(--muted); max-width:690px; font-size:16px; line-height:1.65}
+  .reveal{opacity:0; transform:translateY(30px); transition:opacity .6s ease, transform .6s ease}
+  .reveal.in{opacity:1; transform:none}
+  code{background:rgba(0,229,255,.1); color:#9af3ff; padding:2px 7px; border-radius:6px; font-family:'SF Mono',Consolas,monospace; font-size:.9em}
+
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-top:32px}
+  .card{background:linear-gradient(160deg,var(--panel),var(--panel2)); border:1px solid var(--line); border-radius:18px; padding:24px; position:relative; overflow:hidden; transition:transform .2s, border-color .2s}
+  .card:hover{transform:translateY(-6px); border-color:var(--cyan)}
+  .card .ic{width:54px;height:54px;border-radius:14px; display:grid; place-items:center; font-size:26px; margin-bottom:16px; background:rgba(255,255,255,.05)}
+  .card h3{font-size:18px; margin-bottom:8px}
+  .card p{color:var(--muted); font-size:13.5px; line-height:1.55; margin:0}
+  .card .tag{position:absolute; top:14px; right:14px; font-size:10px; font-weight:800; letter-spacing:1px; padding:4px 9px; border-radius:8px; text-transform:uppercase}
+  .glowline{height:3px; border-radius:3px; margin-top:16px; background:linear-gradient(90deg,var(--cyan),var(--pink)); opacity:.7}
+
+  .flowbox{margin-top:34px; background:rgba(10,16,48,.6); border:1px solid var(--line); border-radius:22px; padding:28px 18px}
+  .flow{display:flex; align-items:center; justify-content:center; gap:0; flex-wrap:wrap}
+  .node{min-width:126px; text-align:center; padding:16px 12px; border-radius:16px; background:var(--panel); border:1px solid var(--line); position:relative; z-index:2}
+  .node .e{font-size:28px} .node .n{font-weight:800; margin-top:5px; font-size:14.5px} .node .d{font-size:11.5px; color:var(--muted); margin-top:4px}
+  .node.cy{box-shadow:inset 0 0 0 1px rgba(0,229,255,.4),0 0 22px rgba(0,229,255,.18)}
+  .node.pk{box-shadow:inset 0 0 0 1px rgba(255,61,176,.4),0 0 22px rgba(255,61,176,.18)}
+  .node.gr{box-shadow:inset 0 0 0 1px rgba(35,240,160,.4),0 0 22px rgba(35,240,160,.18)}
+  .node.gd{box-shadow:inset 0 0 0 1px rgba(255,210,63,.4),0 0 22px rgba(255,210,63,.18)}
+  .arrow{width:70px; height:34px; position:relative; flex:0 0 auto}
+  .arrow svg{width:100%;height:100%}
+  .pulse{stroke-dasharray:6 8; animation:dash 1s linear infinite}
+  @keyframes dash{to{stroke-dashoffset:-28}}
+  .arrow .lbl{position:absolute; top:-16px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--cyan); white-space:nowrap; font-weight:700}
+  @media(max-width:820px){.flow{flex-direction:column} .arrow{transform:rotate(90deg)} .arrow .lbl{transform:translateX(-50%) rotate(-90deg)}}
+
+  .vs{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:32px}
+  @media(max-width:720px){.vs{grid-template-columns:1fr}}
+  .vsc{border-radius:18px; padding:24px; border:1px solid var(--line); background:var(--panel)}
+  .vsc h3{display:flex; align-items:center; gap:10px; font-size:18px; margin-bottom:12px}
+  .vsc p{color:var(--muted); font-size:14px; line-height:1.6; margin:0 0 10px}
+  .vsc .who{font-size:12px; color:var(--text); font-weight:700; padding:6px 10px; border-radius:9px; display:inline-block; background:rgba(255,255,255,.06)}
+  .myth{margin-top:26px; border-left:4px solid var(--gold); background:rgba(255,210,63,.08); padding:16px 20px; border-radius:0 14px 14px 0}
+  .myth b{color:var(--gold)}
+
+  .gotchas{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:30px}
+  @media(max-width:720px){.gotchas{grid-template-columns:1fr}}
+  .got{border-radius:16px; padding:20px 22px; border:1px solid var(--line); background:var(--panel)}
+  .got.g1{border-color:rgba(255,77,77,.5); background:rgba(255,77,77,.07)}
+  .got.g2{border-color:rgba(255,210,63,.5); background:rgba(255,210,63,.07)}
+  .got h3{font-size:17px; margin-bottom:8px; display:flex; gap:9px; align-items:center}
+  .got p{color:var(--muted); font-size:14px; line-height:1.55; margin:0}
+
+  .step{display:grid; grid-template-columns:60px 1fr; gap:20px; padding:26px 0; border-top:1px solid var(--line)}
+  .step:first-of-type{border-top:none}
+  .snum{width:54px;height:54px;border-radius:15px; display:grid; place-items:center; font-weight:900; font-size:23px; background:linear-gradient(135deg,var(--cyan),var(--pink)); color:#06112b; box-shadow:var(--glow-cyan)}
+  .step h3{font-size:21px; margin-bottom:6px}
+  .step .body{color:var(--muted); font-size:15px; line-height:1.6}
+  .step .body b{color:var(--text)}
+  @media(max-width:600px){.step{grid-template-columns:1fr} .snum{width:46px;height:46px;font-size:19px}}
+
+  .win{margin-top:16px; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:var(--ink); box-shadow:0 16px 40px rgba(0,0,0,.5)}
+  .winbar{display:flex; align-items:center; gap:8px; padding:10px 14px; background:#0b1130; border-bottom:1px solid var(--line)}
+  .winbar i{width:11px;height:11px;border-radius:50%}
+  .wintitle{margin-left:8px; font-size:12px; color:var(--muted)}
+  .extsearch{display:flex; align-items:center; gap:8px; padding:10px 12px; margin:12px; background:#0c1233; border:1px solid var(--line); border-radius:8px; color:var(--text); font-size:14px}
+  .extsearch .mag{color:var(--muted)}
+  .extmeta{margin:0 12px 8px; font-size:11px; color:var(--muted); letter-spacing:1.5px; display:flex; justify-content:space-between}
+  .extmeta .cnt{background:#123; color:#7fd8ff; border-radius:10px; padding:1px 9px}
+  .extrow{display:flex; gap:12px; align-items:center; padding:12px; margin:0 12px 12px; border-radius:8px; background:rgba(255,255,255,.03); border:1px solid transparent}
+  .extrow.pick{border-color:var(--green); background:rgba(35,240,160,.08)}
+  .extlogo{width:44px;height:44px;border-radius:10px; display:grid; place-items:center; font-weight:900; font-size:15px; flex:0 0 auto}
+  .extrow .en{font-weight:800; font-size:15px; color:var(--text)}
+  .extrow .ed{font-size:12.5px; color:var(--muted)}
+  .extrow .epub{font-size:12px; color:#8fa6d6; margin-top:2px}
+  .badge{margin-left:auto; font-size:11px; font-weight:800; padding:4px 9px; border-radius:7px; background:rgba(35,240,160,.15); color:var(--green); white-space:nowrap}
+  .badge.warn{background:rgba(255,77,77,.15); color:#ff9a9a}
+  .mono{padding:16px 18px; font-family:'SF Mono',Consolas,monospace; font-size:13px; line-height:1.75; color:#cfe3ff}
+  .mono .p{color:var(--green)} .mono .c{color:#fff} .mono .o{color:var(--muted)} .mono .hl{color:var(--gold); font-weight:700}
+  .rojopanel{padding:20px}
+  .rojotop{display:flex; align-items:center; justify-content:space-between}
+  .rojowm{font-family:'Brush Script MT','Snell Roundhand',cursive; color:var(--red); font-size:34px; font-weight:700; letter-spacing:1px}
+  .rojover{color:var(--muted); font-size:14px; margin-left:10px}
+  .rojocard{margin-top:16px; background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:10px; padding:16px}
+  .rojocard .pn{font-weight:800; font-size:16px}
+  .rojocard .ad{font-family:'SF Mono',Consolas,monospace; color:var(--muted); font-size:14px; margin-top:3px}
+  .rojobtns{display:flex; gap:10px; justify-content:flex-end; margin-top:14px}
+  .rjb{padding:9px 18px; border-radius:8px; font-weight:800; font-size:13px}
+  .rjb.set{background:#1a2350; color:var(--text)} .rjb.dis{background:var(--red); color:#2a0808}
+  .vmatch{display:flex; gap:14px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:16px}
+  .vchip{border-radius:12px; padding:16px 22px; border:1px solid var(--line); background:var(--panel); text-align:center; min-width:190px}
+  .vchip .lb{font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted)}
+  .vchip .vv{font-family:'SF Mono',Consolas,monospace; font-size:20px; font-weight:700; color:var(--cyan); margin-top:5px}
+  .veq{font-size:30px; color:var(--green); font-weight:900}
+  .tree{margin-top:16px; padding:16px 18px; font-family:'SF Mono',Consolas,monospace; font-size:13.5px; line-height:1.7; color:#cfe3ff}
+  .tree .svc{color:var(--pink); font-weight:700} .tree .fld{color:var(--gold)} .tree .scr{color:var(--cyan)} .tree .cmt{color:var(--muted)}
+  table.t{width:100%; border-collapse:collapse; margin-top:16px; font-size:14px; overflow:hidden; border-radius:12px}
+  table.t th{background:var(--panel2); color:var(--text); text-align:left; padding:11px 14px; font-size:12.5px; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--line)}
+  table.t td{padding:11px 14px; border-bottom:1px solid var(--line); color:var(--muted); vertical-align:top}
+  table.t td b, table.t td code{color:var(--text)}
+  table.t tr:last-child td{border-bottom:none}
+  table.t tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  .codeblock{margin-top:16px; background:var(--ink); border:1px solid var(--line); border-radius:12px; padding:16px 18px; font-family:'SF Mono',Consolas,monospace; font-size:13px; line-height:1.7; color:#cfe3ff; white-space:pre-wrap}
+  .callout{margin-top:16px; border-left:4px solid var(--gold); background:rgba(255,210,63,.08); padding:15px 18px; border-radius:0 12px 12px 0; font-size:14.5px; line-height:1.55}
+  .callout.good{border-color:var(--green); background:rgba(35,240,160,.08)}
+  .callout b{color:var(--gold)} .callout.good b{color:var(--green)}
+
+  .loop{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:30px}
+  .loopnode{padding:15px 18px; border-radius:14px; background:var(--panel); border:1px solid var(--line); font-weight:700; font-size:13.5px; display:flex; gap:9px; align-items:center}
+  .loopnode .em{font-size:20px}
+  .loopa{font-size:22px; color:var(--pink); align-self:center; animation:pop 1.6s ease-in-out infinite}
+  @keyframes pop{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.3);opacity:1}}
+  .term{margin-top:26px; background:#05081a; border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .termbar{display:flex; gap:8px; padding:12px 16px; background:#0b1130; border-bottom:1px solid var(--line)}
+  .termbar i{width:12px;height:12px;border-radius:50%}
+  .termbody{padding:18px 20px; font-family:'SF Mono',Consolas,monospace; font-size:13.5px; line-height:1.8; color:#cfe3ff; min-height:150px}
+  .termbody .p{color:var(--green)} .termbody .c{color:#fff} .termbody .o{color:var(--muted)}
+  .cursor-blink{display:inline-block; width:9px; height:16px; background:var(--cyan); vertical-align:middle; animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .safe{display:inline-flex; gap:8px; align-items:center; margin-top:18px; padding:9px 16px; border-radius:11px; background:rgba(35,240,160,.08); border:1px solid rgba(35,240,160,.3); color:var(--green); font-size:13px; font-weight:700}
+  footer{padding:52px 0 76px; text-align:center; border-top:1px solid var(--line); margin-top:30px}
+  .foot-cta{font-size:clamp(24px,4.8vw,40px); text-transform:uppercase; margin-bottom:16px}
+  .small{color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.7}
+</style>
+</head>
+<body>
+<div class="bgwrap"></div><div class="grid"></div>
+<div class="floaty" style="left:5%;top:16%;font-size:34px;animation:bob 7s ease-in-out infinite">🟡</div>
+<div class="floaty" style="right:7%;top:24%;font-size:28px;animation:bob 9s ease-in-out infinite .8s">🧊</div>
+<div class="floaty" style="left:11%;bottom:12%;font-size:30px;animation:bob 8s ease-in-out infinite .4s">🎮</div>
+
+<nav><div class="wrap">
+  <div class="brand"><span class="cube"></span> Roblox Dev Rig</div>
+  <div class="navlinks">
+    <a href="#parts">Parts</a><a href="#flow">How it works</a><a href="#vs">Git vs Rojo</a>
+    <a href="#gotchas">Gotchas</a><a href="#setup">Setup</a><a href="#sync">Verify</a>
+    <a href="#loop">Daily loop</a><a href="#trouble">Troubleshoot</a>
+  </div>
+</div></nav>
+
+<!-- HERO (V1 vibe) -->
+<header>
+  <div class="wrap">
+    <span class="kicker">Cursor · Git · Rojo · Studio</span>
+    <h1 class="title"><span class="a">Build Roblox</span><br><span class="b">Like A Pro</span></h1>
+    <p class="sub">Code in <b>Cursor</b> with AI, save it with <b>Git</b>, live-sync into
+      <b>Roblox Studio</b> with <b>Rojo</b>, then publish from Studio. Below: the fun overview,
+      then the exact screenshot-by-screenshot setup.</p>
+    <div class="cta">
+      <button class="btn btn-p" onclick="document.getElementById('setup').scrollIntoView()">⚡ Setup walkthrough</button>
+      <button class="btn btn-g" onclick="document.getElementById('flow').scrollIntoView()">How it fits together →</button>
+    </div>
+    <div class="chips">
+      <span class="chip"><span class="dot" style="background:var(--purple)"></span>Cursor (AI editor)</span>
+      <span class="chip"><span class="dot" style="background:var(--gold)"></span>Git + GitHub</span>
+      <span class="chip"><span class="dot" style="background:var(--cyan)"></span>Rojo live-sync</span>
+      <span class="chip"><span class="dot" style="background:var(--pink)"></span>Roblox Studio</span>
+    </div>
+  </div>
+</header>
+
+<!-- PARTS -->
+<section id="parts"><div class="wrap reveal">
+  <span class="eyebrow">The toolkit</span>
+  <h2 class="h2">Four tools, four jobs</h2>
+  <p class="lead">Each tool does one job. Together they turn "an idea" into "a tested game you can publish."</p>
+  <div class="cards">
+    <div class="card"><span class="tag" style="background:rgba(138,91,255,.2);color:#c9b3ff">Editor</span>
+      <div class="ic">🤖</div><h3>Cursor</h3>
+      <p>An AI-powered code editor. You write Luau here and ask the AI to explain, fix, and build alongside you.</p><div class="glowline"></div></div>
+    <div class="card"><span class="tag" style="background:rgba(255,210,63,.2);color:#ffe48a">Save / History</span>
+      <div class="ic">🗂️</div><h3>Git + GitHub</h3>
+      <p>Version control. Saves every change, lets you undo anything, and backs your project up online. Studio never reads this.</p><div class="glowline"></div></div>
+    <div class="card"><span class="tag" style="background:rgba(0,229,255,.2);color:#9af3ff">Bridge</span>
+      <div class="ic">🔗</div><h3>Rojo</h3>
+      <p>A CLI server + a Studio plugin. Together they live-sync your <code>.luau</code> files into Studio the instant you save.</p><div class="glowline"></div></div>
+    <div class="card"><span class="tag" style="background:rgba(255,61,176,.2);color:#ffaad8">Engine</span>
+      <div class="ic">🏗️</div><h3>Roblox Studio</h3>
+      <p>Where the game runs. You build the world, press Play to test, and publish it yourself when a build is ready.</p><div class="glowline"></div></div>
+  </div>
+</div></section>
+
+<!-- FLOW -->
+<section id="flow"><div class="wrap reveal">
+  <span class="eyebrow">How it fits together</span>
+  <h2 class="h2">From keystroke to game</h2>
+  <p class="lead">Watch the data flow. Git runs on a separate track — it saves your files but never touches Studio directly.</p>
+  <div class="flowbox">
+    <div class="flow">
+      <div class="node"><div class="e">🤖</div><div class="n">Cursor</div><div class="d">you + AI code</div></div>
+      <div class="arrow"><span class="lbl">rojo serve</span>
+        <svg viewBox="0 0 70 34"><line x1="4" y1="17" x2="58" y2="17" stroke="#ffd23f" stroke-width="3" class="pulse"/><polygon points="58,11 68,17 58,23" fill="#ffd23f"/></svg></div>
+      <div class="node gd"><div class="e">🔗</div><div class="n">Rojo CLI</div><div class="d">localhost:34872</div></div>
+      <div class="arrow"><span class="lbl">connect</span>
+        <svg viewBox="0 0 70 34"><line x1="4" y1="17" x2="58" y2="17" stroke="#00e5ff" stroke-width="3" class="pulse"/><polygon points="58,11 68,17 58,23" fill="#00e5ff"/></svg></div>
+      <div class="node cy"><div class="e">🧩</div><div class="n">Rojo plugin</div><div class="d">pulls files</div></div>
+      <div class="arrow"><span class="lbl">appears in</span>
+        <svg viewBox="0 0 70 34"><line x1="4" y1="17" x2="58" y2="17" stroke="#ff3db0" stroke-width="3" class="pulse"/><polygon points="58,11 68,17 58,23" fill="#ff3db0"/></svg></div>
+      <div class="node pk"><div class="e">🏗️</div><div class="n">Studio</div><div class="d">test + publish</div></div>
+    </div>
+    <div style="text-align:center;margin-top:24px;color:var(--muted);font-size:13px">⬇ meanwhile, on a separate track ⬇</div>
+    <div class="flow" style="margin-top:16px">
+      <div class="node"><div class="e">🤖</div><div class="n">Cursor</div><div class="d">save file</div></div>
+      <div class="arrow"><span class="lbl">git commit</span>
+        <svg viewBox="0 0 70 34"><line x1="4" y1="17" x2="58" y2="17" stroke="#23f0a0" stroke-width="3" class="pulse"/><polygon points="58,11 68,17 58,23" fill="#23f0a0"/></svg></div>
+      <div class="node gr"><div class="e">🗂️</div><div class="n">GitHub</div><div class="d">history + backup</div></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- GIT vs ROJO -->
+<section id="vs"><div class="wrap reveal">
+  <span class="eyebrow">The core concept</span>
+  <h2 class="h2">Git vs Rojo</h2>
+  <p class="lead">They both sound like "syncing," but each talks to a different thing. This is the part everyone gets wrong.</p>
+  <div class="vs">
+    <div class="vsc" style="border-color:rgba(0,229,255,.4)">
+      <h3>🔗 Rojo</h3>
+      <p>The <b>live bridge</b> into Studio. The Rojo plugin talks to a running <code>rojo serve</code> and pulls your <code>.luau</code> files straight into Explorer.</p>
+      <span class="who">Talks to → Roblox Studio</span>
+    </div>
+    <div class="vsc" style="border-color:rgba(255,210,63,.4)">
+      <h3>🗂️ Git / GitHub</h3>
+      <p>Version control for your <b>text files</b>. Records every change so you can undo, branch, and back up online.</p>
+      <span class="who">Talks to → your files</span>
+    </div>
+  </div>
+  <div class="myth">
+    <b>"If I have Git, why doesn't Studio just read it?"</b><br>
+    Because Git only stores text files — <b>Studio has no idea Git exists</b>. Rojo is the bridge
+    that pushes your files into Studio. Git runs alongside purely to save and back up your work.
+    When a build is good, you publish it yourself from Studio.
+  </div>
+</div></section>
+
+<!-- GOTCHAS -->
+<section id="gotchas"><div class="wrap reveal">
+  <span class="eyebrow">Before you start</span>
+  <h2 class="h2">The two things everyone hits</h2>
+  <p class="lead">Nail these and the rest is easy. Miss them and Rojo looks "broken" when it isn't.</p>
+  <div class="gotchas">
+    <div class="got g1"><h3>🔴 Version mismatch</h3>
+      <p>The Rojo <b>CLI</b> (terminal) and the Rojo <b>Studio plugin</b> must be the <b>exact same version</b>
+      (e.g. both <code>7.7.0-rc.1</code>). Different versions → "protocol mismatch" and Connect fails.</p></div>
+    <div class="got g2"><h3>🟡 Connect ≠ sync</h3>
+      <p>Connecting only means Studio can <i>talk</i> to Rojo. Rojo only <b>syncs files mapped in</b>
+      <code>default.project.json</code>. Files outside those folders are invisible to Studio.</p></div>
+  </div>
+</div></section>
+
+<!-- SETUP WALKTHROUGH -->
+<section id="setup"><div class="wrap reveal">
+  <span class="eyebrow">Illustrated walkthrough</span>
+  <h2 class="h2">Set it up, step by step</h2>
+  <p class="lead">Panels below recreate each screen you'll see. Do them in order.</p>
+
+  <div class="step"><div class="snum">1</div><div>
+    <h3>Add two extensions in Cursor</h3>
+    <div class="body"><b>Cursor → Settings… → Extensions</b> (or <code>Cmd + Shift + X</code>). Install both:</div>
+    <div class="win">
+      <div class="winbar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span class="wintitle">Cursor — Extensions</span></div>
+      <div class="extsearch"><span class="mag">🔍</span> rojo</div>
+      <div class="extmeta"><span>MARKETPLACE</span><span class="cnt">20</span></div>
+      <div class="extrow pick">
+        <div class="extlogo" style="background:#1a1030;color:var(--red);font-family:cursive;font-size:20px">R</div>
+        <div><div class="en">Rojo – Roblox Studio Sync</div><div class="ed">Rojo for VS Code · ↓ 25K</div><div class="epub">evaera</div></div>
+        <span class="badge">✓ install this one</span></div>
+      <div class="extrow">
+        <div class="extlogo" style="background:#111;color:#fff">🦘</div>
+        <div><div class="en">Roo Code</div><div class="ed">A whole dev team of AI… · ↓ 1.9M</div><div class="epub">RooVeterinaryInc</div></div>
+        <span class="badge warn">not this</span></div>
+      <div class="extsearch"><span class="mag">🔍</span> lua</div>
+      <div class="extmeta"><span>MARKETPLACE</span><span class="cnt">48</span></div>
+      <div class="extrow pick">
+        <div class="extlogo" style="background:#0a3d91;color:#8ec5ff">Lua</div>
+        <div><div class="en">Lua</div><div class="ed">Lua Language Server</div><div class="epub">sumneko</div></div>
+        <span class="badge">✓ recommended</span></div>
+    </div>
+    <div class="callout"><b>Watch the publisher.</b> "rojo" returns ~20 results — only <b>evaera</b>'s red-logo
+      <i>Rojo for VS Code</i> is correct. For Lua, <b>sumneko</b>'s Lua Language Server gives autocomplete + colors.</div>
+  </div></div>
+
+  <div class="step"><div class="snum">2</div><div>
+    <h3>Open a terminal, get the CLI, check version, start the server</h3>
+    <div class="body"><b>Terminal → New Terminal</b>. <code>cd</code> into your project. Watch the <b class="hl">version</b> and the <b class="hl">port</b>.</div>
+    <div class="win">
+      <div class="winbar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span class="wintitle">Terminal — ~/Desktop/roblox</span></div>
+      <div class="mono"><span class="p">roblox % </span><span class="c">rojo --version</span><br><span class="hl">Rojo 7.7.0-rc.1</span>   <span class="o">← write this number down</span><br><br><span class="p">roblox % </span><span class="c">rojo serve</span><br><span class="o">Rojo server listening:</span><br>  <span class="o">Address:</span> <span class="p">localhost</span><br>  <span class="o">Port:</span>    <span class="hl">34872</span><br><br><span class="o">Visit </span><span class="p">http://localhost:34872/</span><span class="o"> for more information.</span><br><span class="c">▉</span></div>
+    </div>
+    <div class="body" style="margin-top:12px">No CLI yet? Install with Rokit: <code>rokit add rojo-rbx/rojo</code> then <code>rokit install</code>.
+      <b>Leave <code>rojo serve</code> running</b> — it's the server Studio connects to. Stop later with <code>Ctrl + C</code>.</div>
+  </div></div>
+
+  <div class="step"><div class="snum">3</div><div>
+    <h3>Install the Rojo <em>plugin</em> in Studio — "which of the 9?"</h3>
+    <div class="body">The CLI runs the server; the <b>plugin</b> lives in Studio and does the pulling. Version-safe way:</div>
+    <div class="codeblock"><span style="color:#23f0a0">roblox % </span>rojo plugin install   <span style="color:#9bb0d8"># installs a plugin that MATCHES your CLI</span></div>
+    <div class="body" style="margin-top:12px">Then fully quit + reopen Studio. If you use the Toolbox → Plugins search instead, pick the official one:</div>
+    <div class="win">
+      <div class="winbar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span class="wintitle">Roblox Studio — Toolbox › Plugins › search "rojo"</span></div>
+      <div class="extrow pick" style="margin-top:12px">
+        <div class="extlogo" style="background:#1a1030;color:var(--red);font-family:cursive;font-size:20px">R</div>
+        <div><div class="en">Rojo</div><div class="ed">Official — red cursive logo, by the Rojo team</div></div>
+        <span class="badge">✓ this one</span></div>
+      <div class="extrow"><div class="extlogo" style="background:#222;color:#aaa">?</div><div><div class="en">Auto Rojo Sync Helper</div><div class="ed">look-alike</div></div><span class="badge warn">skip</span></div>
+      <div class="extrow"><div class="extlogo" style="background:#222;color:#aaa">?</div><div><div class="en">RojoX / Rojo Tools / …</div><div class="ed">more look-alikes</div></div><span class="badge warn">skip</span></div>
+    </div>
+    <div class="callout"><b>Whatever you install here has a version.</b> If the Toolbox gives you <code>7.6.1</code>
+      but your CLI is <code>7.7.0-rc.1</code>, they won't connect. <code>rojo plugin install</code> avoids this.</div>
+  </div></div>
+
+  <div class="step"><div class="snum">4</div><div>
+    <h3>Open the Plugins tab and match the versions</h3>
+    <div class="body">Studio ribbon → <b>Plugins</b> → click <b>Rojo</b>. The panel shows a version near the logo. It must equal your CLI.</div>
+    <div class="vmatch">
+      <div class="vchip"><div class="lb">Terminal · rojo --version</div><div class="vv">7.7.0-rc.1</div></div>
+      <div class="veq">=</div>
+      <div class="vchip"><div class="lb">Studio · Rojo panel</div><div class="vv">7.7.0-rc.1</div></div>
+    </div>
+    <div class="callout"><b>Mismatch?</b> Pick one version for both. Easiest: re-run <code>rojo plugin install</code>,
+      then <b>fully quit and reopen Studio</b>. Or pin the CLI: <code>rokit add rojo-rbx/rojo@7.6.1 &amp;&amp; rokit install</code>.</div>
+  </div></div>
+
+  <div class="step"><div class="snum">5</div><div>
+    <h3>Connect to your Rojo server</h3>
+    <div class="body">With <code>rojo serve</code> running, click <b>Connect</b>. The panel shows your project + address, then flips to <b>Disconnect</b>.</div>
+    <div class="win">
+      <div class="winbar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span class="wintitle">Roblox Studio — Rojo 7.7.0-rc.1</span></div>
+      <div class="rojopanel">
+        <div class="rojotop"><div><span class="rojowm">Rojo</span><span class="rojover">7.7.0-rc.1</span></div><div class="rojover">synced 12 min ago ⟳</div></div>
+        <div class="rojocard"><div class="pn">roblox</div><div class="ad">localhost:34872</div>
+          <div class="rojobtns"><span class="rjb set">Settings</span><span class="rjb dis">Disconnect</span></div></div>
+      </div>
+    </div>
+    <div class="callout good"><b>Connected.</b> The button reads <b>Disconnect</b> and a "synced … ago" line appears. Now confirm files actually arrived ↓</div>
+  </div></div>
+</div></section>
+
+<!-- VERIFY SYNC -->
+<section id="sync"><div class="wrap reveal">
+  <span class="eyebrow">Step 6 · the "I connected but see no files" fix</span>
+  <h2 class="h2">Verify the sync</h2>
+  <p class="lead">Rojo only syncs what <code>default.project.json</code> maps. After connecting, open <b>Explorer</b> — you should see this exact tree from the starter:</p>
+  <div class="win">
+    <div class="winbar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span class="wintitle">Roblox Studio — Explorer</span></div>
+    <div class="tree"><span class="svc">ServerScriptService</span><br>└─ <span class="fld">Server</span><br>&nbsp;&nbsp;&nbsp;├─ <span class="scr">Main</span>          <span class="cmt">← src/server/Main.server.luau</span><br>&nbsp;&nbsp;&nbsp;└─ <span class="scr">CoinSpawner</span>   <span class="cmt">← src/server/CoinSpawner.server.luau</span><br><span class="svc">ReplicatedStorage</span><br>└─ <span class="fld">Shared</span><br>&nbsp;&nbsp;&nbsp;└─ <span class="scr">GameConfig</span>    <span class="cmt">← src/shared/GameConfig.luau</span><br><span class="svc">StarterPlayer</span><br>└─ StarterPlayerScripts<br>&nbsp;&nbsp;&nbsp;└─ <span class="fld">Client</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ <span class="scr">Main</span>      <span class="cmt">← src/client/Main.client.luau</span></div>
+  </div>
+  <div class="callout good"><b>Live test:</b> add <code>print("Hello from Rojo")</code> to <code>Main.server.luau</code>, save, press <b>Play</b> — it appears in Output. If it does, sync works.</div>
+  <h3 style="margin-top:26px;font-size:19px">File names decide what Studio makes</h3>
+  <table class="t">
+    <tr><th>File name</th><th>Becomes in Studio</th></tr>
+    <tr><td><code>Main.server.luau</code></td><td><b>Script</b> — runs on the server</td></tr>
+    <tr><td><code>Main.client.luau</code></td><td><b>LocalScript</b> — runs on each player</td></tr>
+    <tr><td><code>GameConfig.luau</code></td><td><b>ModuleScript</b> — shared code you <code>require</code></td></tr>
+    <tr><td><code>init.luau</code> (in a folder)</td><td>turns that folder into a ModuleScript</td></tr>
+  </table>
+  <div class="callout">A file at <code>roblox/script.luau</code> — not under a mapped folder, or missing the
+    <code>.server</code>/<code>.client</code> suffix — <b>will not sync</b>. Move it into <code>src/server</code>, <code>src/client</code>, or <code>src/shared</code>.</div>
+</div></section>
+
+<!-- REVERSE ENG -->
+<section id="fix"><div class="wrap reveal">
+  <span class="eyebrow">Step 7 · when it still won't sync</span>
+  <h2 class="h2">Let Cursor reverse-engineer it</h2>
+  <p class="lead">Paste this into Cursor's chat. It reads your files and fixes the mapping. (Cursor sees your local folder only — not inside Studio — so it works files → Studio.)</p>
+  <div class="codeblock">Inspect this Roblox Rojo project.
+
+Goal: Rojo connects to Studio but the expected files/folders don't appear in Explorer.
+
+Please:
+1. Read default.project.json.
+2. List exactly which local folders map to which Roblox services.
+3. Compare those mappings to the actual folder tree in src/.
+4. Flag any missing folders, wrong $path values, or bad file names
+   (.server.luau / .client.luau / plain .luau for modules).
+5. Fix the folder structure if needed — but do NOT delete or overwrite my
+   existing code without asking first.
+6. Create a minimal sync test:
+   - src/server/HelloTest.server.luau  -> print("Hello from Rojo")
+   - src/shared/TestModule.luau        -> a tiny ModuleScript
+7. Tell me the exact command to run with rojo serve, and what I should
+   see in Studio's Explorer after I reconnect.</div>
+</div></section>
+
+<!-- DAILY LOOP (V1 git stuff + animated terminal) -->
+<section id="loop"><div class="wrap reveal">
+  <span class="eyebrow">Every coding session</span>
+  <h2 class="h2">The daily loop &amp; Git</h2>
+  <p class="lead">Code, test, save. Commit often — it's your undo button. Git isn't required for sync, but it's how you never lose work.</p>
+  <div class="loop">
+    <div class="loopnode"><span class="em">🤖</span>Code in Cursor</div><span class="loopa">→</span>
+    <div class="loopnode"><span class="em">💾</span>Save</div><span class="loopa">→</span>
+    <div class="loopnode"><span class="em">🏗️</span>Test in Studio</div><span class="loopa">→</span>
+    <div class="loopnode"><span class="em">🗂️</span>git commit</div><span class="loopa">→</span>
+    <div class="loopnode"><span class="em">☁️</span>git push</div>
+  </div>
+  <div class="term">
+    <div class="termbar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div>
+    <div class="termbody" id="termbody"></div>
+  </div>
+  <h3 style="margin-top:26px;font-size:19px">First-time Git setup (once per project)</h3>
+  <div class="codeblock">git init
+git add .
+git commit -m "First working Rojo sync"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/roblox-cursor-starter.git
+git push -u origin main
+
+<span style="color:#9bb0d8"># optional: a safe branch for the kid to code on</span>
+git checkout -b dev
+git push -u origin dev</div>
+  <div class="safe">🔒 Keep it safe: no API keys, no auto-publish, never use your .ROBLOSECURITY cookie. Publish manually via File → Publish to Roblox.</div>
+</div></section>
+
+<!-- TROUBLESHOOT -->
+<section id="trouble"><div class="wrap reveal">
+  <span class="eyebrow">Fast reference</span>
+  <h2 class="h2">Troubleshooting</h2>
+  <table class="t">
+    <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td>"Protocol mismatch" on Connect</td><td>CLI ≠ plugin version</td><td>Make both equal (Step 4). Restart Studio.</td></tr>
+    <tr><td>Connected but Explorer is empty</td><td>Files not under a mapped <code>$path</code></td><td>Move code into <code>src/server</code>/<code>client</code>/<code>shared</code>.</td></tr>
+    <tr><td>File shows as the wrong type</td><td>Wrong suffix</td><td><code>.server.luau</code> / <code>.client.luau</code> / <code>.luau</code>.</td></tr>
+    <tr><td>Nothing updates when I save</td><td><code>rojo serve</code> stopped / disconnected</td><td>Restart <code>rojo serve</code>, click Connect.</td></tr>
+    <tr><td>Can't find the plugin in Studio</td><td>Not installed / Studio not restarted</td><td><code>rojo plugin install</code>, fully quit + reopen.</td></tr>
+  </table>
+</div></section>
+
+<footer><div class="wrap">
+  <h2 class="foot-cta"><span style="background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent">Match. Serve. Connect. Sync. Ship.</span></h2>
+  <p class="lead" style="margin:0 auto">That's the whole rig. Tell Cursor's AI what game you want — an obby, a tycoon, a simulator — and build it on the baseplate, one saved file at a time.</p>
+  <div class="cta"><button class="btn btn-p" onclick="document.getElementById('setup').scrollIntoView()">⚡ Back to setup</button></div>
+  <p class="small">Roblox Dev Rig template · for a 14+ creator learning Luau with AI.<br>
+  Extensions shown: Rojo (evaera) · Lua (sumneko). Rojo is made by its respective team; this is an independent starter kit.</p>
+</div></footer>
+
+<script>
+  const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  // animated git terminal
+  const lines=[
+    {t:'p',x:'~/roblox-cursor-starter $ '},{t:'c',x:'git status'},
+    {t:'o',x:'  modified: src/shared/GameConfig.luau'},
+    {t:'p',x:'~/roblox-cursor-starter $ '},{t:'c',x:'git add .'},
+    {t:'p',x:'~/roblox-cursor-starter $ '},{t:'c',x:'git commit -m "Make coins worth 5"'},
+    {t:'o',x:'  [dev a1b2c3d] Make coins worth 5'},
+    {t:'p',x:'~/roblox-cursor-starter $ '},{t:'c',x:'git push'},
+    {t:'o',x:'  ✓ pushed to GitHub. Tested in Studio. '}
+  ];
+  const body=document.getElementById('termbody'); let li=0,ci=0,cur=null;
+  function tick(){
+    if(li>=lines.length){ const b=document.createElement('span'); b.className='cursor-blink'; body.appendChild(b); return; }
+    const L=lines[li];
+    if(ci===0){ cur=document.createElement('div'); body.appendChild(cur); }
+    if(L.t==='p'){ cur.innerHTML='<span class="p">'+L.x+'</span>'; li++; ci=0; setTimeout(tick,120); return; }
+    if(L.t==='c'){ cur.innerHTML='<span class="c">'+L.x.slice(0,ci)+'</span><span class="cursor-blink"></span>'; }
+    else { cur.innerHTML='<span class="o">'+L.x.slice(0,ci)+'</span>'; }
+    ci++;
+    if(ci>L.x.length){ cur.innerHTML=cur.innerHTML.replace('<span class="cursor-blink"></span>',''); li++; ci=0; setTimeout(tick,420); } else setTimeout(tick,30);
+  }
+  const tobs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){tick();tobs.disconnect();}})},{threshold:.4});
+  tobs.observe(document.querySelector('.term'));
+</script>
+</body>
+</html>
