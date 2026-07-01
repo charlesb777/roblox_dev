@@ -1,0 +1,15 @@
+# Roblox / Rojo build output
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+sourcemap.json
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
+
+# Secrets — NEVER commit these
+.env
+*.key
